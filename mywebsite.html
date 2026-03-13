@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>零</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #0a0a0a;
+            --secondary: #333333;
+            --light: #f8f7f5;
+            --accent: #8b7355;
+            --text: #2a2a2a;
+            --border: #d5d1cb;
+        }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Georgia', 'Garamond', serif;
+            background: var(--light);
+            color: var(--text);
+            overflow-x: hidden;
+        }
+        .container { width: 100%; position: relative; }
+        
+        /* 基础场景样式 */
+        .scene {
+            position: absolute;
+            width: 100%;
+            height: 100vh;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+        }
+        .scene.active {
+            display: flex;
+            opacity: 1;
+            position: relative;
+        }
+        
+        /* 主页 */
+        .scene-home { background: var(--light); }
+        .seal-container {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 3rem;
+        }
+        .seal {
+            font-size: 5rem;
+            font-style: italic;
+            color: var(--text);
+            text-shadow: -2px -2px 8px rgba(0,0,0, 0.08);
+            letter-spacing: 4px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            animation: sealFloat 3s ease-in-out infinite;
+        }
+        .seal:hover { transform: scale(1.08); filter: drop-shadow(0 8px 16px rgba(0,0,0, 0.1)); }
+        @keyframes sealFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .home-hint {
+            font-size: 0.75rem;
+            color: var(--accent);
+            letter-spacing: 2px;
+            margin-top: 3rem;
+            opacity: 0.6;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.8; }
+        }
+        
+        /* 内容页面通用样式 */
+        .scene-content {
+            background: var(--light);
+            position: relative;
+            width: 100%;
+            height: auto;
+            min-height: 100vh;
+            overflow-y: auto;
+        }
+        .scene-content.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            opacity: 1;
+            position: relative;
+        }
+        
+        /* 文章页面 */
+        .scene-content.article-page .bg-image {
+            display: none !important;
+        }
+        
+        /* 背景图 */
+        .bg-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.3;
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        /* 内容包装器 */
+        .content-wrapper {
+            position: relative;
+            z-index: 1;
+            padding: 4rem 5%;
+            max-width: 900px;
+            width: 100%;
+            animation: slideUpLight 0.8s ease 0.1s both;
+        }
+        @keyframes slideUpLight {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .page-title {
+            font-size: 3rem;
+            font-weight: 300;
+            text-align: center;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+        .page-subtitle {
+            font-size: 1rem;
+            text-align: center;
+            color: var(--accent);
+            font-style: italic;
+            margin-bottom: 3rem;
+            letter-spacing: 2px;
+        }
+        .content-text {
+            font-size: 1.05rem;
+            line-height: 2;
+            color: var(--secondary);
+            text-align: justify;
+            margin-bottom: 2rem;
+        }
+        .article-text {
+            font-size: 1rem;
+            line-height: 2;
+            color: var(--secondary);
+            text-align: left;
+            margin-bottom: 1.5rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        /* 按钮和导航 */
+        .branch-btn {
+            background: transparent;
+            border: none;
+            color: var(--text);
+            padding: 0.8rem 2rem;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            letter-spacing: 2px;
+            font-family: 'Georgia', 'Garamond', serif;
+        }
+        .branch-btn:hover {
+            color: var(--accent);
+            transform: translateY(-2px);
+            letter-spacing: 3px;
+        }
+        .branches {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-top: 4rem;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .nav-back {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            z-index: 100;
+            display: none;
+        }
+        .back-btn {
+            background: transparent;
+            border: none;
+            color: var(--text);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+            font-style: italic;
+        }
+        .back-btn:hover {
+            color: var(--accent);
+            transform: scale(1.1);
+        }
+        
+        /* 文章卡片 */
+        .article-card {
+            background: rgba(240, 237, 233, 0.5);
+            padding: 2rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+        .article-card:hover {
+            background: rgba(240, 237, 233, 0.8);
+            transform: translateY(-2px);
+        }
+        .article-card h3 {
+            font-size: 1.3rem;
+            color: var(--text);
+            font-weight: 400;
+            margin-bottom: 0.8rem;
+        }
+        .article-card p {
+            font-size: 0.95rem;
+            color: var(--secondary);
+            line-height: 1.6;
+        }
+        
+        /* Gallery 样式 */
+        .gallery-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
+        }
+        .gallery-item {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .gallery-image {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .gallery-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .gallery-description {
+            font-size: 1rem;
+            line-height: 1.8;
+            color: var(--secondary);
+            text-align: left;
+        }
+        .gallery-description h3 {
+            font-size: 1.3rem;
+            color: var(--text);
+            font-weight: 400;
+            margin-bottom: 0.8rem;
+        }
+        
+        /* 消息页面 */
+        .scene-messages {
+            background: var(--light);
+            position: relative;
+            width: 100%;
+            height: auto;
+            min-height: 100vh;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 4rem 5%;
+            overflow-y: auto;
+        }
+        .scene-messages.active {
+            display: flex;
+            opacity: 1;
+            position: relative;
+        }
+        
+        .messages-container {
+            max-width: 700px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        /* 纸团 */
+        .paper-ball-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            perspective: 1000px;
+        }
+        .paper-ball {
+            width: 80px;
+            height: 80px;
+            animation: paperBallBob 4s ease-in-out infinite;
+            filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.2));
+            cursor: pointer;
+        }
+        .paper-ball svg {
+            width: 100%;
+            height: 100%;
+        }
+        @keyframes paperBallBob {
+            0%, 100% { transform: translateY(0) rotateZ(0deg); }
+            50% { transform: translateY(-20px) rotateZ(3deg); }
+        }
+        
+        /* 纸张 */
+        .paper-sheet {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50%;
+            max-width: 400px;
+            aspect-ratio: 4 / 3;
+            background: linear-gradient(135deg, #faf8f5 0%, #f5f3f0 100%);
+            border-radius: 4px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            padding: 2rem;
+            opacity: 0;
+            animation: unfoldPaper 1s ease forwards;
+        }
+        @keyframes unfoldPaper {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scaleY(0.1) rotateX(90deg);
+            }
+            100% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scaleY(1) rotateX(0deg);
+            }
+        }
+        @keyframes foldPaper {
+            0% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scaleY(1) rotateX(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scaleY(0.1) rotateX(90deg);
+            }
+        }
+        .paper-sheet.active {
+            display: flex;
+        }
+        .paper-sheet.folding {
+            animation: foldPaper 1s ease forwards;
+        }
+        
+        .paper-sheet-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+        .form-group label {
+            font-size: 0.8rem;
+            color: var(--secondary);
+            opacity: 0.7;
+        }
+        .form-group input,
+        .form-group textarea {
+            background: transparent;
+            border: none;
+            padding: 0.5rem 0;
+            font-family: 'Georgia', 'Garamond', serif;
+            font-size: 0.9rem;
+            color: var(--text);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        .form-group textarea {
+            resize: none;
+            flex: 1;
+            border-bottom: none;
+            padding-top: 0.8rem;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-bottom-color: var(--accent);
+            background: transparent;
+        }
+        .form-group textarea:focus {
+            border-bottom: none;
+        }
+        .submit-btn {
+            background: transparent;
+            border: none;
+            color: var(--accent);
+            padding: 0.5rem 0;
+            cursor: pointer;
+            font-family: 'Georgia', 'Garamond', serif;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            border-radius: 0;
+            align-self: flex-end;
+            font-size: 0.9rem;
+        }
+        .submit-btn:hover {
+            color: #6d5844;
+            opacity: 0.8;
+        }
+        
+        /* 消息列表 */
+        .messages-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            width: 100%;
+        }
+        .message-item {
+            background: transparent;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .message-item:last-child {
+            border-bottom: none;
+        }
+        .message-name {
+            font-size: 0.9rem;
+            color: var(--accent);
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .message-content {
+            font-size: 1rem;
+            color: var(--text);
+            line-height: 1.6;
+            margin-bottom: 0.8rem;
+        }
+        .message-time {
+            font-size: 0.8rem;
+            color: var(--accent);
+            opacity: 0.6;
+        }
+        
+        /* 提示文字 */
+        .continue-hint {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.8rem;
+            color: var(--accent);
+            opacity: 0.6;
+            animation: pulse 2s ease-in-out infinite;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        /* 飞出动画 */
+        .falling-paper-ball {
+            position: fixed;
+            width: 80px;
+            height: 80px;
+            pointer-events: none;
+            z-index: 500;
+            animation: throwPaperBall 2s ease forwards;
+        }
+        @keyframes throwPaperBall {
+            0% {
+                opacity: 1;
+                transform: translateY(0) translateX(0) rotateX(0deg) rotateY(0deg) rotateZ(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(500px) translateX(150px) rotateX(720deg) rotateY(360deg) rotateZ(360deg);
+            }
+        }
+        
+        /* 页面过渡 */
+        @keyframes fadeInLight {
+            from { opacity: 0; transform: scale(0.995) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .pageFlip {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 999;
+            pointer-events: none;
+        }
+        @keyframes pageFlipLeft {
+            0% { transform: rotateY(0deg); opacity: 1; }
+            100% { transform: rotateY(-90deg); opacity: 0; }
+        }
+        @keyframes pageFlipRight {
+            0% { transform: rotateY(0deg); opacity: 1; }
+            100% { transform: rotateY(90deg); opacity: 0; }
+        }
+        
+        @media (max-width: 768px) {
+            .page-title { font-size: 2rem; }
+            .seal { font-size: 3.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="nav-back" id="navBack">
+        <button class="back-btn" onclick="goBack()">↰</button>
+    </div>
+
+    <div class="container">
+        <!-- HOME PAGE -->
+        <div class="scene scene-home active" id="sceneHome">
+            <img src="WEBHOME.JPG" style="position: absolute; width: 100%; height: 100%; object-fit: cover; opacity: 0.3; z-index: 0;">
+            <div style="position: relative; z-index: 1;">
+                <div class="seal-container">
+                    <div class="seal" onclick="openPage('about')">零</div>
+                </div>
+                <div class="home-hint">Click center / Discover</div>
+            </div>
+        </div>
+
+        <!-- ABOUT PAGE -->
+        <div class="scene scene-content" id="sceneAbout">
+            <img src="WEBHOME.JPG" class="bg-image">
+            <div class="content-wrapper">
+                <h1 class="page-title">欢迎光临</h1>
+                <p class="page-subtitle">About Me</p>
+                <div class="content-text">现在我们相信文字，影像和情绪。</div>
+                <div class="content-text">Life moves fast these days. We forget to pause and observe. Every moment slips away, and we are just passing through. This is my thinking space, where I record subtle feelings, poetic imagination, and curiosity about the world.</div>
+                <div class="content-text">I believe in the power of words. I believe that in simple expression, we can find the deepest meaning. This space is a thread between you and me, connecting our thoughts, emotions and dreams.</div>
+            </div>
+        </div>
+
+        <!-- ABOUT BRANCHES PAGE -->
+        <div class="scene scene-content" id="sceneAboutBranches">
+            <img src="WEBHOME.JPG" class="bg-image">
+            <div class="content-wrapper">
+                <div class="branches">
+                    <button class="branch-btn" onclick="openPage('works')">斋Gallery</button>
+                    <button class="branch-btn" onclick="openPage('words')">亭Words</button>
+                    <button class="branch-btn" onclick="openPage('messages')">角门Messages</button>
+                    <button class="branch-btn" onclick="window.open('https://aesnever.substack.com', '_blank')">门房Newsletter</button>
+                    <button class="branch-btn" onclick="goHome()">院Home</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- WORKS PAGE -->
+        <div class="scene scene-content" id="sceneWorks">
+            <img src="WEBHOME.JPG" class="bg-image">
+            <div class="content-wrapper">
+                <h1 class="page-title">斋</h1>
+                <p class="page-subtitle">Gallery</p>
+                <div class="content-text">This space collects my creative footprints - video, photography, design, writing. Each work is my way of dialoguing with the world. They may not be perfect, but they all come from sincerity.</div>
+                <div class="content-text">Like a violin's broken note that sometimes moves people more, perhaps the so-called defect itself is art. I like to find the possibility of beauty in imperfection.</div>
+            </div>
+        </div>
+
+        <!-- WORKS GALLERY PAGE -->
+        <div class="scene scene-content" id="sceneWorksGallery">
+            <img src="WEBHOME.JPG" class="bg-image">
+            <div class="content-wrapper">
+                <h1 class="page-title">斋</h1>
+                <p class="page-subtitle">Gallery</p>
+                <div id="galleryContainer" class="gallery-container"></div>
+            </div>
+        </div>
+
+        <!-- WORDS PAGE -->
+        <div class="scene scene-content" id="sceneWords">
+            <img src="WEBHOME.JPG" class="bg-image">
+            <div class="content-wrapper">
+                <h1 class="page-title">亭</h1>
+                <p class="page-subtitle">Words</p>
+                <div class="content-text">Sudden flashes of thought. Reflections on life. Definitions of beauty. These are not complete stories, but the pulse of thought. Like the character "亭" - a clear, crisp sound, brief but powerful.</div>
+                <div class="content-text">Here, I record the voice of my heart in the most direct way. Each word is like a pause button in life, allowing us to savor those ordinary yet precious moments.</div>
+            </div>
+        </div>
+
+        <!-- WORDS ARCHIVE PAGE -->
+        <div class="scene scene-content" id="sceneWordsArchive">
+            <img src="WEBHOME.JPG" class="bg-image">
+            <div class="content-wrapper">
+                <h1 class="page-title">亭</h1>
+                <p class="page-subtitle">Words</p>
+                <div class="article-card" onclick="openArticle(0)">
+                    <h3>喂，奶奶，好久不见</h3>
+                    <p>记录一个与奶奶的对话，关于时间、记忆和被遗忘的故事。一段温暖而复杂的家族记忆。</p>
+                </div>
+                <div class="article-card" onclick="openArticle(1)">
+                    <h3>第壹肆贰叁叁行横线</h3>
+                    <p>在米兰公墓的西南角，关于爱上一座坟墓的故事。诗意、晦涩、又隐隐绰绰地爱。</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ARTICLE 0 DETAIL PAGE -->
+        <div class="scene scene-content article-page" id="sceneArticle0">
+            <img src="WEBHOME.JPG" class="bg-image">
+            <div class="content-wrapper">
+                <h1 class="page-title">喂，奶奶，好久不见</h1>
+                <p class="page-subtitle">记录一</p>
+                <div class="article-text">记录一 奶奶
+"喂，奶奶，好久不见欸"
+------题记
+十一岁之前我从未听过以前的事。 
+奶奶家有两本照片薄，一本在书房，一本在客厅被我踩坏的柜子上，拿起来放下去还会吱吱地响。
+十一岁之后我再没有踏进这扇门。
+奶奶家有两本照片薄，一本在我手里，一本在客厅被我踩坏的柜子上，拿起来放下去还会吱吱地响。
+我实在太容易在文章里写废话了，就好像没有这些口头禅似的言语，完整的句子就无法出现，怎么也说不顺畅。但是这些话无论夹杂着怎样的情绪都会出现在这里。她们的故事需要一个叙述者。
+推开门，走路，推开门，走路，下台阶，走路。绕到教学楼后被树林挡住的窗户边。
+"爸爸，奶奶电话多少啊。"在教室里一字一句打字问询奶奶的过去，再敲击电脑刷着短视频等待那头夹带着宽阔环境噪音的回应的语音实在太过疲惫，干脆拨通电话。
+"我看看啊，我还真记不得了。"
+"你妈电话你记不得？"我没犹豫就直接甩给了他一句话，忘记了什么语气，但大抵是平静得不能再平静的吧。
+他没意外地支支吾吾地嗯嗯呃呃了一会儿。
+"平时都是用663的短号的啊，所以记不得正常的嘛。"
+我没回他。
+沉默了两秒后我开了口。
+"那爷爷电话呢？"
+"1…………"
+我打开的黑色的手机备忘录的输入提示的线就那样一下一下的跳动，我只是呆呆地看着它。
+"好的，我打给他。"我想"为什么能记住爷爷的记不住奶奶的"这个问题的答案应该没有意义了。
+无声地挂断后，我开始翻找我的手机通讯录。从A到Z的排列，直到在N的第一个，我看到"奶奶"。
+我本想逼自己一把，不写完就不看手机，但耳机里的音乐一会儿声音大，一会儿刺耳，但音量小了CR里的嘈杂又要打断我。试探性地又开始翻看手机，然后莫名其妙盯着电脑的边缘，边敲下键盘，边移轴到眼前九宫格里的不同虚焦片段里。我继续写。
+我不动声色的张望，点开看看电话号码，若无其事地打了几个响指。最后打开了和妈妈的聊天框，发出"妈妈，奶奶电话是这个吗？"本以为得不到的回答却马上得到了回复，握紧了手机，我拨出了那个电话。摘掉耳机。
+"喂，奶奶，好久不见啊！"
+我又拿起了手机，你知道的，dt明天就要ddl了我还没动笔，我得和朋友确认下有没有改时间先，顺便看看朋友们的朋友圈放松一下吧。
+"你是谁啊？"
+"我是曼达呀。"
+"喔喔，曼达啊，最近在学校怎么样啊。"
+"我都挺好的奶奶，什么都还不错。"
+"不错好莫，要记得不要拿不知道的东西诶，掉在地上的东西不要捡诶，不管是什么都不要捡啊，要是有人说'是不是你的啊'你就说'不是我的'然后快快走掉诶，现在坏人手段很多的诶，出去一定要小心。"
+"好的奶奶，我一直待在学校里不出去的。"
+"诶诶好诶，一定要注意安全诶，你自己一个人在外面…………"
+我脑子里只剩下怎么开启接下来的话题。
+"奶奶我学校里有个作业，是要我们采访家里的，女，性，长辈，要了解以下以前的故事，我能问你几个问题吗？"
+和奶奶提女性总觉得是一个从来不会出现的词，好久才适应。
+CR里有人去睡觉了，他说他在考虑COL到底要不要去演魔术，我说去呗反正都是好玩的机会，他说cce都上了col好没意思自己好厉害，我说col也挺重要的，然后…………，他去睡觉了。
+"要问我问题啊，能不能问爷爷啊，爷爷都知道的。"
+"奶奶可以问你吗，老师说要是女性长辈。"
+"我现在老了，身体都不好了脑子都不清楚了啊，你要不要问爷爷吧。"
+明明奶奶比爷爷年轻了两岁。
+"奶奶没有啊，你聪明的聪明的，还不老呢，我就问一点点问题不烦的。"
+"哪里不老啊，年轻的时候我也是和你一样的小姑娘，现在都是皱纹了，都是老太婆了，好吧好吧，你问吧。"
+"奶奶，你，这么久了，有没有什么很有意思的事啊。"
+"有啊，我小学的时候在村子里读书，孙老师啊教我们，然后我就养成了一个习惯，就会唱歌跳舞。那个时候又活泼又漂亮，就和孙老师学唱歌跳舞，晚上就去村里的俱乐部，去学演戏啊，学《红灯记》，还有《儿女丰城记》……"
+"奶奶儿女丰城记是哪几个字啊？"
+"就是儿女丰城记的。"奶奶放慢了语速说。
+直到刚刚查证，搜了小红书，我才发现，是《儿女风尘记》，是张孟良写的，比较新的印刷本也到了1980年，之前应该是只有抄录的版本了。
+张天保全家五口逃难，去恶霸地主家里做长工，大女儿因漂亮被地主拐卖后在妓院自杀，二女儿和妻子也接连被迫害，最后只剩下了小儿子被关进杀人如麻的救济院，随后在经历苦难后投入革命事业。
+我也不再询问，只是默默打了相近的字奶奶也继续说。
+"那个时候真的是活泼又漂亮哦，好招人喜欢的。"
+"奶奶那有什么让你还记得的记忆深刻的事吗？"
+她停顿了一会儿。
+"小时候啊，同样年纪的小女孩都会到海边抓跳鱼，赚钱嘛。但是我就不用的诶，因为爸爸妈妈都会挣钱的……"
+"奶奶你妈妈和爸爸在做什么为什么会有钱啊？"
+"我爸爸，是在合作社的，妈妈家里会养猪，所以啊家里有钱，我不用工作，读书读到了初二诶，你知道吗，当时一个村里就只有两个人读到了初二诶，因为家里有钱的诶。"
+我又和CR里的朋友聊天，和他说我在写回忆类的非虚构，还是等到3000字了再去睡觉吧虽然写的好不舒服。
+"奶奶还有什么吗？"
+"还有啊，那时候我们家有钱嘛，别人家就会来我们借钱给孩子治病。从我们这里拿钱去医院的诶。我们家都是好人诶。"
+"嗯呢奶奶，那你有什么不开心的事情吗？"
+我尝试知道一点不为人知的故事
+CR里的人问我到底几点回去啊，从一点半拖到三点半了，我也不知道啊，impactweek要干啥，马上烧麦就要演出了。
+"不开心的事情啊，不开心的有诶。读书了的时候放学了会回地里插秧，后来也不敢去了，因为里面有蚂蝗，那个时候啊，我插着插着，突然发现一直叮在我腿上了。我好害怕过，但是身边的人也都不管，因为他们直到这个不会怎么样，只是一直笑。但我也没办法莫就只能一直蹬脚然后叫，最后是哥哥跑了两三里路来帮我弄下来的。"
+"那哥哥很好了啊！"
+"对啊，平时我也都不怎么干活，他们有的会去摸螺蛳，这个赚钱的，但是我爸爸就骂我不让我去，奶奶胆子又小，也真是不去的，要是我去了，爸爸真的会骂我的嘛。"奶奶好像把去了就会被骂重复了好多次。
+"奶奶，为什么你爸爸不让你去摸螺蛳啊？"
+"呃嗯，因为我爸爸怕我淹死嘛，奶奶嘛不会游泳的莫，胆子很小的。"
+我瞟到左手边有人经过，往施工区走了。
+我停顿一下
+"奶奶，那别人去摸螺蛳的时候你在哪里啊，不会无聊吗？"
+"不会无聊啊。"
+"那你在做什么啊？"
+"我，我，我，那时候有时候会在家嘛，就在房子里洗碗莫，家里有人要洗碗的莫。"
+"奶奶那这个赚钱吗？"
+"不赚，就赚一点点钱，摸螺蛳赚钱的诶。"
+我没有再问为什么家里有钱还是要去洗碗，那如果家里没钱为什么不去摸螺蛳了。
+CR里的最后一个人走了，他问我还不走吗，我还是能写多少是多少吧。行李室里的外国声音还没说完呢，不算一个人在这。
+"奶奶，你和爷爷什么时候怎么结婚的啊？"奶奶说的所有都在只占了她人生1/4的前半生里，至于后来快六十年的婚姻呢。
+"诶当时都在一个镇上嘛，都还不错嘛。"
+"结婚之后有什么有意思的事嘛？"
+"嗯啊，好像也没什么诶。"
+"奶奶你之前是不是卖过梭子蟹啊？"
+小时候在表哥旁边，晚上就能吃上螃蟹，爸爸看着我说，奶奶以前卖梭子蟹的，可会挑螃蟹的。挑着扁担在菜市场门口甩卖吗？回过神我点点头。大人们，表哥一筷子一筷子，我当时没吃得下。妈妈往我盘里夹了一块蟹膏。橙黄的，表面不平整的一块，我咬了一口，它脱力地和另外一半分开，又在咬了几次后变成粉状的糊糊。海鲜的咸鲜味，甜味，然后是不知道怎么描述的苦味。于是又吃了一口，同样的自然的咸鲜甜苦过度。我转头和妈妈说这是苦的，刚好桌上的爷爷奶奶小姑姑大姑姑都听到，我忘记是谁和我说的了。"蟹膏就是这个味道的，很好吃的诶，吃了很补的，你吃啊。"我又吃了一口，把剩下的藏在了碗朝着我的这个方向，扒拉了两口饭。
+"对啊有去卖的，好多人一起去诶，合股一起去的，外公从大海里捞过来买过来，盒子里放上冰，我们拉到金华去诶。"爷爷是爸爸的爸爸，爷爷不是外公。
+"是爷爷自己抓起来的吗？"
+"是爷爷到他们船里买过来的诶，赚了好多钱的诶。"
+"我和你说你不要和别人说诶，"
+"不说的。"
+"奶奶老实的，不聪明的诶，这都只能和家里说，不能告诉别人诶。"
+"奶奶你很聪明啊……"
+"诶你不知道嘛，我真的很傻的，很老实的。"
+又有人来接水了，他总是在很迟的时候来接水，我不太认识他，走过去，又走出去，没过多久从cr出去了。
+"奶奶聪明的啊，老实一点也是好的，奶奶你去卖梭子蟹的时候有遇到不太开心的时候吗？是不是很辛苦啊？"
+"诶梭子蟹要运到金华去嘛，路上辛苦的诶。车里嘛都是螃蟹坐不下的莫，就都在车顶上几个人，那时候年轻嘛，都没事的，能赚到钱的诶。"
+"那和客人买卖的时候有没有不愉快啊。"
+"诶是很多人一起卖的嘛，我也没有一直要在，都想不起来了的，不记得了的。"
+"哦哦哦，好。"
+好像不能再问下去了。
+"你知道的莫，奶奶不会说好听的话的，我和你说的都是真的诶，没有被别人听到吧，别人会不会笑话的啊。"
+"不会不会，没人听到也没人会笑话的，大家都不会笑话的，这也没有什么嘛。"
+"（笑）这样啊，这样就好诶，你在学校里照顾好自己，好好学习诶，要注意安全，不要捡陌生人掉在地上的袋子诶。"
+"「里c斜」（丽生，爷爷的名字）"
+"（爷爷）曼达啊。"
+我往后仰了仰身体，斜方肌剧烈抽动的疼痛让我一下子不知如何是好，又坐回来胳膊肘撑着身体，耸着肩打字。
+"（爷爷）曼达啊，最近怎么样啊，要记得不要捡地上的东西啊，不要和陌生人讲话诶，要早睡的诶。"
+"好的好的知道了的诶。爷爷你和奶奶是怎么认识怎么结婚的啊？"                                 
+"诶还关心我们恋爱故事啦哈哈（笑），你知道的莫，都在一个镇子上嘛，那时候媒人会来说的嘛，那时候家里人就做了主了，然后嘛就结婚了莫。"
+"爷爷你们什么时候结的婚啊？"
+"诶，应该是1970年吧，我23岁，你奶奶22岁。"
+"你们都多注意身体诶。"
+"在外面注意安全啊，好好学习。"
+拨完电话之后的我空空的和只剩下往虞山书院看的眼睛，和现在坐在空旷教室里看着那些红的绿的花草一样的我一样的一样的。
+走回教室，拿起电脑的只有一句话的空白文档，我撑住自己的嘴看着教室不知道干什么。教室里凉凉的没有声音，我把耳机戴了又摘，摘了又戴。又开始刷短视频平台。
+在和奶奶打电话之前，和爸爸的语音里的问题竟然有相同的答案。
+我以为的我总能听到的她的故事不应该只是：从小到大顺风顺水，结婚之后当家庭主妇，把孩子照顾得很好。直到大格局崩塌之后，富有细节的平常的不能再平常的一生。
+CR里的最后一个人走了。
+
+后记
+小的时候很喜欢去奶奶家，最小的表哥会和我一起在爷爷房间的床上看着电视，玩飞行棋，玩打怪兽。命名怪兽，然后开着宇宙飞船去追击他们。房间里隐藏式的卫生间就是我们的传送门，玩完了奶奶会在门口敲门让我们去吃饭。有热好的烧鹅，隔夜但是还是很香的王鱼，还有炒的各种菜。米饭香香的，木筷子带有的独特的粗糙的吮吸的味道，老老的又干净的地方。去厨房倒一杯伊利牛奶，拿一把剪刀剪开。奶奶会来看我一眼注意安全，剪开后倒在碗里。奶奶会让我不要喝凉的，放进微波炉里给我加热了，用两块抹布端过来给我。在我一不小心被碗沿烫到的时候让我慢点喝。
+中午和奶奶一起睡，看着阳光照过粉红色的窗帘发着红红的光，碎了一脚的老式镜子，和身上毛茸茸又厚重的毯子。奶奶会有轻轻的鼾声，一声一声一声。
+下午写着学校里印出来的《暑期嘉年华》边喝奶奶做的「郎拖」（蛋汤）好好吃的味道。再背着奶奶和表格偷偷下楼去快倒闭的便利店里买一元一小桶的公仔面吃，从口袋里掏出一打硬币结账。
+天黑的时候妈妈从单位下班，一起吃完晚饭后陈旧的锁门扣了两次后打开，锁淅淅沥沥的卡着声音。穿过窗台上有着铁栏杆和小花小草和葱的走廊，左拐，等着铁色的电梯，电梯口还有吵吵的广告电视在打租车公司的广告。走进有镜子的电梯，到一楼按钮的红光消失，门顿了一下又打开。和妈妈手牵手走进了有着馒头味的地下室。奶奶会在门口笑笑着和我们说再见。
+直到表哥初中后的某个时候吧。我的作业早早写完后开始和表哥玩Minecraft，让他教我，而他也不拒绝的写着作业。他写作业的房间我进去过三次。一次问他怎么怎么跳起来，一次问他怎么拆方块，一次问他晚上了怎么办。
+晚上小姑姑来了，发现他作业没写完后的小姑姑突然大发雷霆，说完一小通表哥之后就开始指责和骂我。
+"他在写作业呐，你为什么要去打扰他哦。"
+"他现在和你不一样，他初中的啊，学习很重要的你知不知道哦。"
+"他在写作业你为什么要进去啊。"
+"你懂不懂什么叫尊重别人哦。"
+一系列的话就这么在我脑海盘旋，从小就泪失禁的一个十岁的孩子已经说不出任何一句话只剩下听不出声音的"我没有"和看向奶奶的求救式的眼睛
+告诉小姑姑我没有一直打扰他好吗？
+告诉小姑姑诺诺哥哥没有拒绝我进去好吗？
+告诉小姑姑前面是诺诺哥哥和我一起在玩不是我要求的好吗？
+"听到没有曼达，不要打扰哥哥学习诶。"
+发白的眼前，潮湿的脸颊，耳边还在不断加剧的声音。
+大人们的视线中央。是我。
+之后的半年我再没有去过奶奶家。
+唯一的一次在半年后，妈妈单位要加班不放心我一个人在家，被奶奶以表哥在学习的理由拒绝了。她当时好像还有个掩饰的借口，不重要了。
+这才回忆起以前的种种细节，只有表哥在才会有的新鲜的烧鹅，比我厚出一叠的红包，我记不得了。
+半年无限延长到了，一年，两年，三年，再到现在。
+我真的再也没有去过奶奶家了。从一开始的畏惧，难过，委屈，不解，厌恶。到最后只是平静的静置，轻飘飘地抛开奶奶后来去她的邀请。
+那些好的幸福的时候就这样留在那里一动不动了。
+前段时间的年夜饭，爸爸和伯伯发现奶奶嘴歪了。两人一前一后开车就送去医院了。
+"中风前兆"妈妈这么和我说。
+年夜饭空空的，怪怪的。
+莫名的，我觉得我应该写写她，无论是那个小时候充斥了我美好回忆的人和地方还是那个重男轻女的保守的老太。如果没有人记录她呢？我不忍心她在哪天身体不康健后不能再说出自己后无人再认识她。我想有一天我会原谅她的。
+我不想给她打电话，于是我先问了我爸。但是那些轻飘飘的"没有什么事情""她真的是家庭主妇""她很厉害，把我们照顾得很好"这些话从一个时长语气就淡淡的的男性嘴里说出来的时候那么刺耳。
+做了半节课的心理准备后我才打电话给她。是觉得和她说话太过疲惫，是因为过去那些事情带来的直到现在回想都会皱着眉头的难受和委屈，是难以接受的封建的擦边的隐喻。还是单纯的不适。
+接通电话后她重复的"你问爷爷吧。""我老了啊，脑子都不清楚了。""我很笨的，不聪明。""想不起来了，记不得了"我不知道怎么回，也无法下手。
+备忘录里零散的几个字时刻都在remind me那段我现在依然记得一清二楚的电话。
+爸爸其实说的一点没错。我当时信誓旦旦一定会让奶奶丰满起来的interview的结果呢。那些细节好像只是在修正平面上的凹凸，然后进一步完成了一个真的平庸的女性的几近一辈子。
+我们该如何接受一个时代下，顺风顺水一切顺利的女性的最后是毫无作为，没有波澜，到头来的个人物品只有衣服，镜子，和假发的一生呢。我总是坐在任何的地方想起然后皱眉盯着屏幕。
+文学的失语现象有时候是信息化时代对表达的减损，也会是影射后无法接受和表达的震撼和不堪一击的逻辑锁链。
+大背景下的被虚焦的透明化的女性，平面的她们。
+写一个人好像就要有她们所有人的故事。
+但是她真的是我奶奶，是陈爱凤，是会做世界上最好吃的蛋汤的陈爱凤。
+我真的爱着你。</div>
+            </div>
+        </div>
+
+        <!-- ARTICLE 1 DETAIL PAGE -->
+        <div class="scene scene-content article-page" id="sceneArticle1">
+            <img src="WEBHOME.JPG" class="bg-image">
+            <div class="content-wrapper">
+                <h1 class="page-title">第壹肆贰叁叁行横线</h1>
+                <p class="page-subtitle">诗</p>
+                <div class="article-text">第壹肆贰叁叁行横线
+我们在墓地相遇重逢
+伴着鲜花，铁锈，雕塑
+以及飘忽不定的爱
+-------题记
+我爱上了一个死去的人，或是一座坟墓，我想是的。
+我们认识在意大利公墓的西南角，当我在墓园内圈丈量长度。说真的，那是一座极不起眼的墓碑。扁平的立方体，连同地上的长盒子，只是米白色的洞石材质在米兰这样一座温差较大的地中海气候城市里是不常见的。没人知道是否某天的太阳直射会使潮湿的碑体开裂，或者倒塌。说不准祂还没到下一未知中去就先在这里老去了。
+所以我看着祂的墓志铭，
+"我不能逐一描尽全部的亡魂。"
+浅淡的刻痕，大抵是真的可以消失在死人活人都多的世界里了。
+没有名字，没有生年，只有左下角与墓志铭齐头的卒年，今年。
+我退后了几步看，只剩下米白色长方体和隐隐绰绰的柏树林遮掩着。  
+"灰色的树林，由自杀者的灵魂所变。"
+真是精妙的比喻。只是这里看起来不会有撕咬树枝的野兽。
+我保证只是光线太好，所以坐在了比邻的长椅上。你知道的，光线和色彩对于画家总是重要的，但我不是画家。
+于是我呼吸了一整个下午坐在这里。
+下一次来的时候我带了三支玫瑰，半掩在左下角，假装这是有名字的地方。然后我回到了公墓的入口。沿着墓园栅栏走。我叫这一行为丈量，摸铁锈也是一部分。南边和北边的锈是大不相同的，北边的锈湿但是硌，南边的锈涩得黏腻，纠缠指纹的缝隙。
+又完整一趟，搭在人形雕塑下的长椅上，我够了够人像伸出的石制的手，温热光滑的尖端，原来每一拍心跳都需要勇气。
+我借了祂一支玫瑰，紧紧握着，直到太阳好不容易落了下去又松开。
+今天我插入太阳和月亮的调子了。偷窥的，狭窄的，闭塞的，和碾碎后硬塞其中的我的。不如棺材通透。
+厌恶地擦干净手上的玫瑰残骸，抬头天慢慢走远了，我标记了十月十七日十八点二十九分的的Opacarophile，蓝调的最后，墓碑，雕塑，
+"他们在风中似乎是很轻的。"
+白色大理石的回头，隐约浅灰色的沉着透过视线擦过祂的长方体上棱。剩下的白色像浆糊先浓稠地流向黑天，又在黑纸表面融化，沉入了天里头。
+祂是最后一个熄灭的。
+闭上眼睛是因为不可避免的灰尘。
+抱胸坐在长椅上清醒，日子从右边又起来了，挣扎着上升。
+我庆幸这一刻我比祂和太阳做了第一个出现的，擦了擦污垢，悄悄将玫瑰还了回去。
+回到椅子上，月亮的半脸映在太阳的另一边，绝对静止的瞬间，我和潮汐这样浮游。无限延伸的时间，头尾相接。
+"必得有一只较轻的船渡你。"
+起身，向北走。
+指甲敲响锈迹，兑完我赊下的丈量。
+昨晚白色大理石送了我一程。
+自行车上，我打了一个电话。
+当自行车未驶向公寓时我毫不奇怪，自然的掏出餐厅老板手绘的代金券，又揣了回去。点满了前菜后餐，以及一杯白葡萄酒。没来得及尝出味道的，坐了会儿。看一眼口袋，把还有的三张钞票递给老板，便径直出去了。
+"余下的236欧存进你的卡里了，记得来花！"他在喊。
+睡觉了。
+又回到墓园，我站在了祂的旁边。
+一个中等身材的棕发男人绘声绘色的讲解这块地的好，我只是看着进口那边一个稀疏的人影，长头发？在这样偏僻的公墓里，人总是相当少。
+"那也是来看位置的人吗？"
+"不，不出所料她已经在这了，"笔记本的页面翻，"是的，就在您旁边。"
+我没把头转回来。
+"我们提供假死的相关帮助，也支持提前预留墓位，您不是这样吗？"
+我回复了餐厅老板短信，抬头。
+"我买，"
+口袋里的现金夹杂着那张代金券一起滑落出来，蹭上肮脏的淤泥。
+擦干净代金券上的污渍，一把抓起地上散落的整钞塞进男人怀里，再把卡在了长椅下面的那张捡起来，嘱咐他快点建起我的墓碑。
+我又去了餐厅，点满了前菜后餐，以及一杯白葡萄酒。这次我多点了一杯。
+其实我有点恨她，当她还活着。
+为了去死我拿出了我二十二年的努力。
+明天是我二十三岁生日。
+凌晨两点四十一分，我走出了餐厅拐角，跨过空无一人的大街，绕过湿涩的锈迹，靠在她的碑上。
+抛硬币。摩擦空气。
+祂今天好像不太欢迎我，
+感谢一个莫名其妙的理由。
+我好像忘了些什么。
+我直直的坐在长方形上，用最后一点力气向上瞟，大理石的琴声看不见了，时潜时明的眼睛，向我伸出了手，在回头。
+在回头。
+终于扭过头去，西边是用力抓握但逐渐消失的少女轮廓。
+我回头了。
+"入此门者，必当失去一切希望。"
+离10月21日，也就是写下着这篇的时间已经已经有一个半月了，没有写诗的感觉。当中其实断断续续的看过这篇文章好久，不管是自己还是给别人看然后悄悄给我自己一点小解释，但是这次看，觉得祂崭新，晦涩，又隐隐绰绰地爱我。
+昨天累了没写，我要再看看</div>
+            </div>
+        </div>
+
+        <!-- MESSAGES PAGE -->
+        <div class="scene scene-messages" id="sceneMessages">
+            <img src="WEBHOME.JPG" class="bg-image">
+            <div class="messages-container" onclick="goToRecents(event)">
+                <h1 class="page-title">角门</h1>
+                <p class="page-subtitle">Messages</p>
+                <div class="paper-ball-container">
+                    <div class="paper-ball" onclick="openPaperSheet(event)">
+                        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="paperGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#faf8f5;stop-opacity:1" />
+                                    <stop offset="50%" style="stop-color:#f5f3f0;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#e8dcc8;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            <circle cx="50" cy="50" r="45" fill="url(#paperGrad)" stroke="#d4c4b0" stroke-width="0.5"/>
+                            <path d="M 35 45 Q 40 40 45 45 T 55 45" fill="none" stroke="#d4c4b0" stroke-width="0.6" opacity="0.5"/>
+                            <path d="M 55 60 Q 60 55 65 60" fill="none" stroke="#c4b4a0" stroke-width="0.5" opacity="0.4"/>
+                            <ellipse cx="50" cy="50" rx="43" ry="40" fill="none" stroke="rgba(0,0,0,0.08)" stroke-width="1"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAPER SHEET -->
+        <div class="paper-sheet" id="paperSheet">
+            <div class="paper-sheet-content">
+                <form onsubmit="submitMessage(event)">
+                    <div class="form-group">
+                        <label for="msgName">名字</label>
+                        <input type="text" id="msgName" placeholder="" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="msgContent">留言</label>
+                        <textarea id="msgContent" placeholder="" required></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn">发送</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- MESSAGES ARCHIVE PAGE -->
+        <div class="scene scene-content" id="sceneRecents">
+            <img src="WEBHOME.JPG" class="bg-image">
+            <div class="content-wrapper">
+                <h1 class="page-title">角门</h1>
+                <p class="page-subtitle">Recent Messages</p>
+                <div class="messages-list" id="messagesList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let messages = JSON.parse(localStorage.getItem('messages')) || [];
+        let currentPage = 'about';
+        let paperSheetOpen = false;
+
+        function playUnfoldSound() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const now = audioContext.currentTime;
+            const noise = audioContext.createBufferSource();
+            const bufferSize = audioContext.sampleRate * 0.6;
+            const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+            const output = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                const progress = i / bufferSize;
+                output[i] = (Math.random() * 2 - 1) * Math.sqrt(1 - progress * progress);
+            }
+            noise.buffer = buffer;
+            const filter = audioContext.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.setValueAtTime(2000, now);
+            const gain = audioContext.createGain();
+            gain.gain.setValueAtTime(0.06, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+            noise.connect(filter);
+            filter.connect(gain);
+            gain.connect(audioContext.destination);
+            noise.start(now);
+            noise.stop(now + 0.6);
+        }
+
+        function playThrowSound() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const now = audioContext.currentTime;
+            const windNoise = audioContext.createBufferSource();
+            const windBufferSize = audioContext.sampleRate * 0.4;
+            const windBuffer = audioContext.createBuffer(1, windBufferSize, audioContext.sampleRate);
+            const windOutput = windBuffer.getChannelData(0);
+            for (let i = 0; i < windBufferSize; i++) {
+                windOutput[i] = (Math.random() * 2 - 1) * 0.2;
+            }
+            windNoise.buffer = windBuffer;
+            const windFilter = audioContext.createBiquadFilter();
+            windFilter.type = 'lowpass';
+            windFilter.frequency.setValueAtTime(1800, now);
+            const windGain = audioContext.createGain();
+            windGain.gain.setValueAtTime(0.05, now);
+            windGain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+            windNoise.connect(windFilter);
+            windFilter.connect(windGain);
+            windGain.connect(audioContext.destination);
+            windNoise.start(now);
+            windNoise.stop(now + 0.4);
+        }
+
+        function playSound() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const now = audioContext.currentTime;
+            const friction = audioContext.createBufferSource();
+            const frictionBufferSize = audioContext.sampleRate * 0.6;
+            const frictionBuffer = audioContext.createBuffer(1, frictionBufferSize, audioContext.sampleRate);
+            const frictionOutput = frictionBuffer.getChannelData(0);
+            for (let i = 0; i < frictionBufferSize; i++) {
+                const progress = i / frictionBufferSize;
+                frictionOutput[i] = (Math.random() * 2 - 1) * Math.sin(progress * Math.PI);
+            }
+            friction.buffer = frictionBuffer;
+            const frictionFilter = audioContext.createBiquadFilter();
+            frictionFilter.type = 'bandpass';
+            frictionFilter.frequency.setValueAtTime(1500, now);
+            frictionFilter.Q.setValueAtTime(1.5, now);
+            const frictionGain = audioContext.createGain();
+            frictionGain.gain.setValueAtTime(0.06, now);
+            frictionGain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+            friction.connect(frictionFilter);
+            frictionFilter.connect(frictionGain);
+            frictionGain.connect(audioContext.destination);
+            friction.start(now);
+            friction.stop(now + 0.6);
+        }
+
+        function triggerVibration() {
+            if (navigator.vibrate) {
+                navigator.vibrate([10, 8, 12]);
+            }
+        }
+
+        function createPageTransition() {
+            const container = document.createElement('div');
+            container.className = 'pageFlip';
+            const leftPage = document.createElement('div');
+            leftPage.style.cssText = 'position: absolute; top: 0; left: 0; width: 50%; height: 100%; background: linear-gradient(90deg, rgba(139, 115, 85, 0.25), rgba(139, 115, 85, 0.05)); box-shadow: inset -2px 0 8px rgba(0, 0, 0, 0.1); transform-origin: left; animation: pageFlipLeft 0.8s ease forwards;';
+            const rightPage = document.createElement('div');
+            rightPage.style.cssText = 'position: absolute; top: 0; right: 0; width: 50%; height: 100%; background: linear-gradient(270deg, rgba(139, 115, 85, 0.25), rgba(139, 115, 85, 0.05)); box-shadow: inset 2px 0 8px rgba(0, 0, 0, 0.1); transform-origin: right; animation: pageFlipRight 0.8s ease forwards;';
+            container.appendChild(leftPage);
+            container.appendChild(rightPage);
+            document.body.appendChild(container);
+            setTimeout(() => container.remove(), 800);
+        }
+
+        function openPage(page) {
+            closePaperSheetSilent();
+            playSound();
+            triggerVibration();
+            createPageTransition();
+            document.querySelectorAll('.scene').forEach(s => {
+                s.classList.remove('active');
+                s.onclick = null;
+            });
+            currentPage = page;
+            if (page === 'about') {
+                document.getElementById('navBack').style.display = 'none';
+                const scene = document.getElementById('sceneAbout');
+                scene.classList.add('active');
+                setTimeout(() => {
+                    scene.onclick = e => {
+                        if (e.target === scene || e.target.closest('.content-wrapper')) {
+                            openPage('aboutBranches');
+                        }
+                    };
+                }, 100);
+            } else if (page === 'aboutBranches') {
+                document.getElementById('navBack').style.display = 'none';
+                document.getElementById('sceneAboutBranches').classList.add('active');
+            } else if (page === 'messages') {
+                document.getElementById('navBack').style.display = 'block';
+                document.getElementById('sceneMessages').classList.add('active');
+            } else {
+                document.getElementById('navBack').style.display = 'block';
+                const sceneMap = { 'works': 'sceneWorks', 'worksGallery': 'sceneWorksGallery', 'words': 'sceneWords', 'wordsArchive': 'sceneWordsArchive' };
+                if (sceneMap[page]) {
+                    const scene = document.getElementById(sceneMap[page]);
+                    scene.classList.add('active');
+                    if (page === 'works') {
+                        setTimeout(() => {
+                            scene.onclick = e => {
+                                if (e.target === scene || e.target.closest('.content-wrapper')) {
+                                    openPage('worksGallery');
+                                }
+                            };
+                        }, 100);
+                    } else if (page === 'words') {
+                        setTimeout(() => {
+                            scene.onclick = e => {
+                                if (e.target === scene || e.target.closest('.content-wrapper')) {
+                                    openPage('wordsArchive');
+                                }
+                            };
+                        }, 100);
+                    }
+                }
+            }
+            window.scrollTo(0, 0);
+        }
+
+        function openArticle(index) {
+            closePaperSheetSilent();
+            playSound();
+            triggerVibration();
+            createPageTransition();
+            document.querySelectorAll('.scene').forEach(s => s.classList.remove('active', 'article-page'));
+            const scene = document.getElementById(`sceneArticle${index}`);
+            scene.classList.add('active', 'article-page');
+            document.getElementById('navBack').style.display = 'block';
+            currentPage = `article${index}`;
+            setTimeout(() => {
+                scene.onclick = e => {
+                    if (e.target === scene || e.target.closest('.content-wrapper')) {
+                        goBack();
+                    }
+                };
+            }, 100);
+            window.scrollTo(0, 0);
+        }
+
+        function goBack() {
+            playSound();
+            triggerVibration();
+            createPageTransition();
+            document.querySelectorAll('.scene').forEach(s => s.classList.remove('active', 'article-page'));
+            
+            if (currentPage.startsWith('article')) {
+                // 文章详情页返回文章目录
+                document.getElementById('sceneWordsArchive').classList.add('active');
+                document.getElementById('navBack').style.display = 'block';
+                currentPage = 'wordsArchive';
+            } else if (currentPage === 'wordsArchive') {
+                // 文章目录返回主菜单
+                document.getElementById('sceneAboutBranches').classList.add('active');
+                document.getElementById('navBack').style.display = 'none';
+                currentPage = 'aboutBranches';
+            } else if (currentPage === 'recents') {
+                // Recents 返回 Messages
+                document.getElementById('sceneMessages').classList.add('active');
+                document.getElementById('navBack').style.display = 'block';
+                currentPage = 'messages';
+            } else if (currentPage === 'messages') {
+                // Messages 返回主菜单
+                document.getElementById('sceneAboutBranches').classList.add('active');
+                document.getElementById('navBack').style.display = 'none';
+                currentPage = 'aboutBranches';
+            } else {
+                // 其他页面返回主菜单
+                document.getElementById('sceneAboutBranches').classList.add('active');
+                document.getElementById('navBack').style.display = 'none';
+                currentPage = 'aboutBranches';
+            }
+            window.scrollTo(0, 0);
+        }
+
+        function goHome() {
+            closePaperSheetSilent();
+            playSound();
+            triggerVibration();
+            createPageTransition();
+            document.querySelectorAll('.scene').forEach(s => s.classList.remove('active', 'article-page'));
+            document.getElementById('sceneAbout').classList.add('active');
+            document.getElementById('navBack').style.display = 'none';
+            currentPage = 'about';
+            window.scrollTo(0, 0);
+        }
+
+        function openPaperSheet(e) {
+            e.stopPropagation();
+            paperSheetOpen = true;
+            playUnfoldSound();
+            triggerVibration();
+            document.getElementById('paperSheet').classList.add('active');
+        }
+
+        function closePaperSheetSilent() {
+            const ps = document.getElementById('paperSheet');
+            ps.classList.remove('active', 'folding');
+            paperSheetOpen = false;
+        }
+
+        function closePaperSheet() {
+            const ps = document.getElementById('paperSheet');
+            ps.classList.add('folding');
+            setTimeout(() => {
+                ps.classList.remove('active', 'folding');
+                paperSheetOpen = false;
+            }, 1000);
+        }
+
+        function goToRecents(e) {
+            if (e.target.closest('.paper-ball')) return;
+            playSound();
+            triggerVibration();
+            createPageTransition();
+            closePaperSheetSilent();
+            document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
+            document.getElementById('sceneRecents').classList.add('active');
+            document.getElementById('navBack').style.display = 'block';
+            currentPage = 'recents';
+            renderMessages();
+            window.scrollTo(0, 0);
+        }
+
+        function submitMessage(event) {
+            event.preventDefault();
+            const name = document.getElementById('msgName').value;
+            const content = document.getElementById('msgContent').value;
+            const timestamp = new Date().toLocaleString();
+            messages.unshift({ name, content, timestamp });
+            if (messages.length > 50) messages = messages.slice(0, 50);
+            localStorage.setItem('messages', JSON.stringify(messages));
+            playThrowSound();
+            triggerVibration();
+            const pb = document.querySelector('.paper-ball');
+            const clone = pb.cloneNode(true);
+            clone.style.position = 'fixed';
+            clone.style.width = '80px';
+            clone.style.height = '80px';
+            clone.className = 'falling-paper-ball';
+            const rect = pb.getBoundingClientRect();
+            clone.style.left = rect.left + 'px';
+            clone.style.top = rect.top + 'px';
+            document.body.appendChild(clone);
+            document.getElementById('msgName').value = '';
+            document.getElementById('msgContent').value = '';
+            closePaperSheet();
+            setTimeout(() => {
+                clone.remove();
+                playSound();
+                triggerVibration();
+                createPageTransition();
+                closePaperSheetSilent();
+                document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
+                document.getElementById('sceneRecents').classList.add('active');
+                document.getElementById('navBack').style.display = 'block';
+                currentPage = 'recents';
+                renderMessages();
+                window.scrollTo(0, 0);
+            }, 2000);
+        }
+
+        function renderMessages() {
+            const ml = document.getElementById('messagesList');
+            ml.innerHTML = '';
+            if (messages.length === 0) {
+                ml.innerHTML = '<p style="text-align: center; color: var(--accent); padding: 2rem;">No messages yet. Be the first!</p>';
+                return;
+            }
+            messages.forEach(msg => {
+                const el = document.createElement('div');
+                el.className = 'message-item';
+                el.innerHTML = `<div class="message-name">${escapeHtml(msg.name)}</div><div class="message-content">${escapeHtml(msg.content)}</div><div class="message-time">${msg.timestamp}</div>`;
+                ml.appendChild(el);
+            });
+        }
+
+        function escapeHtml(text) {
+            const map = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'};
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        renderMessages();
+
+        document.getElementById('sceneAbout').onclick = e => {
+            if (e.target === document.getElementById('sceneAbout') || e.target.closest('.content-wrapper')) {
+                openPage('aboutBranches');
+            }
+        };
+
+        // Gallery 数据管理
+        let galleryItems = JSON.parse(localStorage.getItem('galleryItems')) || [];
+
+        function initGallery() {
+            const container = document.getElementById('galleryContainer');
+            console.log('initGallery called, galleryItems:', galleryItems);
+            console.log('container:', container);
+            container.innerHTML = '';
+            
+            if (galleryItems.length === 0) {
+                console.log('No gallery items');
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 3rem; color: var(--accent); opacity: 0.6;">
+                        <p>还没有作品展示</p>
+                        <p style="font-size: 0.9rem; margin-top: 1rem;">在控制台用 addGalleryItem() 添加作品</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            console.log('Adding', galleryItems.length, 'gallery items');
+            galleryItems.forEach((item, index) => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'gallery-item';
+                const html = `
+                    <div class="gallery-image">
+                        <img src="${item.image}" alt="${item.title}" style="display: block; width: 100%;">
+                    </div>
+                    <div class="gallery-description">
+                        <h3>${item.title}</h3>
+                        <p>${item.description}</p>
+                    </div>
+                    <button onclick="deleteGalleryItem(${index})" style="background: transparent; border: none; color: var(--accent); cursor: pointer; text-align: right; font-size: 0.9rem; padding: 0.5rem 0;">删除</button>
+                `;
+                console.log('Item', index, 'image path:', item.image);
+                itemEl.innerHTML = html;
+                
+                // 添加图片加载事件监听
+                const img = itemEl.querySelector('img');
+                img.addEventListener('load', function() {
+                    console.log('Image loaded:', item.image);
+                });
+                img.addEventListener('error', function() {
+                    console.error('Image failed to load:', item.image);
+                });
+                
+                container.appendChild(itemEl);
+                console.log('Added item', index, ':', item.title);
+            });
+        }
+
+        function addGalleryItem(imageUrl, title, description) {
+            galleryItems.push({
+                image: imageUrl,
+                title: title,
+                description: description
+            });
+            localStorage.setItem('galleryItems', JSON.stringify(galleryItems));
+            initGallery();
+            console.log('作品已添加');
+        }
+
+        function deleteGalleryItem(index) {
+            galleryItems.splice(index, 1);
+            localStorage.setItem('galleryItems', JSON.stringify(galleryItems));
+            initGallery();
+        }
+
+        // 页面加载时初始化gallery
+        // 初始化gallery数据 - 自动加载本地图片
+        const initialGalleryData = [
+            {
+                image: 'Blue_Window.jpg',
+                title: '蓝窗',
+                description: '窗外的景色通过车窗框架呈现，白雪覆盖的山峦在清澈的蓝天下显得宁静而深远。这是一个捕捉自然与视角交融的瞬间。'
+            },
+            {
+                image: 'Dancing_with_an_umbrella_red.jpg',
+                title: '红伞舞者',
+                description: '阳光下的码头，一把鲜红的伞成为画面的焦点。街头艺人在表演，伞下的舞蹈传达了生活中的轻松与快乐。'
+            },
+            {
+                image: 'light_shadow.jpg',
+                title: '光影交织',
+                description: '城市夜景中的建筑与灯光，霓虹的闪烁创造出温暖的光影效果。这是都市生活的一个缩影，充满了动感与活力。'
+            },
+            {
+                image: 'Non_Stop.JPG',
+                title: '不停歇的飞行',
+                description: '天空中的无人机在清晨的光线下飞行，象征着探索和发现。这个瞬间捕捉了技术与自然的对话。'
+            },
+            {
+                image: 'Racerocks_away.jpg',
+                title: '灯塔记忆',
+                description: '海岸边的灯塔静静伫立，鸟儿在空中翱翔。这是一个关于指引与方向的故事，灯塔永远照亮前路。'
+            },
+            {
+                image: 'Midieval_portrait_mirror.jpg',
+                title: '中世纪镜像',
+                description: '古董镜框在阳光下闪闪发光，镜子反射出蓝天。这件艺术品承载着历史的沧桑与美的永恒。'
+            },
+            {
+                image: 'through_beach0.jpg',
+                title: '沙滩漫步',
+                description: '树影下，一个背影在沙滩上行走。海浪声伴随着脚步，这是一段思考与自省的旅程。'
+            },
+            {
+                image: 'walking_by.jpg',
+                title: '停泊时刻',
+                description: '一个身影在海滨停留，背景是复杂的日常场景。这个瞬间记录了内心的平静与周围世界的喧嚣。'
+            },
+            {
+                image: 'Mcdonald_Lift.jpg',
+                title: '停驻的瞬间',
+                description: '停车场的日常景象，人们在这里短暂停驻。生活中的许多故事都在这些平凡的地方发生。'
+            }
+        ];
+
+        // 强制使用初始数据覆盖localStorage
+        localStorage.setItem('galleryItems', JSON.stringify(initialGalleryData));
+        galleryItems = initialGalleryData;
+        
+        // 现在初始化gallery
+        initGallery();
+    </script>
+</body>
+</html>
